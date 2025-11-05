@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualisateur de Monde RPG</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1> Visualisateur de Monde RPG</h1>
+            <p>Explorez le monde généré par votre API • Position: <span id="position">(2, 2)</span></p>
+        </header>
+        <div class="main-content">
+            <aside>
+
+                  <!-- section creation compte et deconnexion  -->
+                <section class="auth">
+                    <h2> Connexion</h2>
+                        <input id="login-email" type="email" placeholder="Email">
+                        <input id="login-password" type="password" placeholder="Mot de passe">
+                        <button id="btn-login">Se connecter</button>
+                        <button id="btn-logout" disabled>Se déconnecter</button>
+                    <details id="register-block">
+                        <summary>Créer un compte</summary>
+                        <input id="reg-email" type="email" placeholder="Email">
+                        <input id="reg-pseudo" type="text" placeholder="Pseudo">
+                        <input id="reg-password" type="password" placeholder="Mot de passe">
+                        <button id="btn-register">S’inscrire</button>
+                    </details>
+
+                        <p>Statut: <span id="auth-status">Déconnecté</span></p>
+                        
+                </section>
+
+               <!-- affichage info personnage-->
+
+               <section class="player guarded hidden" id="player-panel">
+                    <h2> Personnage</h2>
+
+                    <p><strong>Nom :</strong> <span id="p-nom">—</span></p>
+                    <p><strong>Niveau :</strong> <span id="p-niveau">—</span></p>
+
+                    <p><strong>XP :</strong>
+                        <span id="p-xp">0</span>
+                    </p>
+
+                    <p><strong>PV :</strong>
+                        <span id="p-pv">0</span> / <span id="p-pvmax">0</span>
+                    </p>
+
+                <!-- Barre de PV simple (pas sur que je vais garder mais je laisse dabord ) -->
+                    <div class="pv-bar">
+                        <div class="pv-fill" id="p-pvbar" style="width:0%"></div>
+                    </div>
+
+                    <p><strong>Force :</strong> <span id="p-force">—</span></p>
+                    <p><strong>Défense :</strong> <span id="p-defense">—</span></p>
+                    <p><strong>Position :</strong> (<span id="p-x">—</span>, <span id="p-y">—</span>)</p>
+                </section>
+
+
+                
+                <section class="info guarded hidden">
+                    <h2> Informations</h2>
+                    <ul>
+                        <li>Taille du monde: 50 x 50</li>
+                        <li>Zone affichée: 5 x 5 tuiles</li>
+                        <li>Status API: <span class="status">Connecté</span></li>
+                        <li>Tuiles chargées: <span id="tuiles-loaded">9</span></li>
+                    </ul>
+                </section>
+
+
+
+                <section class="legend guarded hidden">
+                    <h2> Légende</h2>
+                    <ul>
+                        <li><img src="assets/Plains.png" alt="Herbe" style="width:24px;height:24px;vertical-align:middle;margin-right:6px;"> Herbe</li>
+                        <li><img src="assets/River.png" alt="Eau" style="width:24px;height:24px;vertical-align:middle;margin-right:6px;"> Eau</li>
+                        <li><img src="assets/Mountain.png" alt="Montagne" style="width:24px;height:24px;vertical-align:middle;margin-right:6px;"> Montagne</li>
+                        <li><img src="assets/Forest.png" alt="Forêt" style="width:24px;height:24px;vertical-align:middle;margin-right:6px;"> Forêt</li>
+                        <li><img src="assets/Town.png" alt="Ville" style="width:24px;height:24px;vertical-align:middle;margin-right:6px;"> Ville</li>
+                        <li><img src="assets/Road.png" alt="Route" style="width:24px;height:24px;vertical-align:middle;margin-right:6px;"> Route</li>                    </ul>
+                </section>
+
+            </aside>
+            <section class="world-map guarded hidden">
+                <div class="map-header">
+                    <h2> Carte du Monde</h2>
+                    <div id="zone-info" class="zone-info">Zone: (0, 0) - (4, 4)</div>
+                </div>
+                <div id="map"></div>
+
+                                 <section class="navigation guarded hidden">
+                    <h2> Navigation</h2>
+                    <div class="nav-grid">
+                        <div></div>
+                        <button id="btn-nord">Nord</button>
+                        <div></div>
+
+                        <button id="btn-ouest">Ouest</button>
+                        <button id="btn-actualiser">Actualiser</button>
+                        <button id="btn-est">Est</button>
+
+                        <div></div>
+                        <button id="btn-sud">Sud</button>
+                        <div></div>
+                    </div>
+                </section>
+                <section class="selected-tile guarded hidden">
+                    <h2> Tuile Sélectionnée</h2>
+                    <div id="selected-info">
+                        <p>Position: <span id="selected-pos">(1, 1)</span></p>
+                        <p>Type: <span id="selected-type">HERBE</span></p>
+                        <p>Traversable: <span id="selected-traversable">Oui</span></p>
+                        <p>Description: </p>
+                        <p><span id="selected-desc">Tuile herbe en position (1, 1)</span></p>
+                        <p id="selected-monstre" style="display:none;"></p>
+                        <button id="btn-load-monstre" style="display:none; margin-top:10px;">Charger dans le simulateur</button>
+                    </div>
+                </section>
+            </section>
+        </div>
+    </div>
+    
+    <!-- Simulateur de Combat -->
+    <div id="combat-simulator" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" id="close-simulator">&times;</span>
+            <h2>Simulateur de Combat</h2>
+            
+            <div class="simulator-sections">
+                <div class="player-stats">
+                    <h3>Vos statistiques</h3>
+                    <p><strong>Nom:</strong> <span id="sim-player-nom">—</span></p>
+                    <p><strong>PV:</strong> <span id="sim-player-pv">0</span></p>
+                    <p><strong>Force:</strong> <span id="sim-player-force">0</span></p>
+                    <p><strong>Défense:</strong> <span id="sim-player-defense">0</span></p>
+                </div>
+                
+                <div class="monster-input">
+                    <h3>Statistiques du monstre</h3>
+                    <label>Nom: <input type="text" id="sim-monstre-nom" placeholder="Nom du monstre"></label>
+                    <label>PV: <input type="number" id="sim-monstre-pv" placeholder="Points de vie" min="1"></label>
+                    <label>Attaque: <input type="number" id="sim-monstre-attaque" placeholder="Force d'attaque" min="0"></label>
+                    <label>Défense: <input type="number" id="sim-monstre-defense" placeholder="Défense" value="0" min="0"></label>
+                </div>
+            </div>
+            
+            <button id="btn-simulate" class="btn-primary">Simuler le combat</button>
+            
+            <div id="simulation-results" class="hidden">
+                <h3>Résultats de la simulation</h3>
+                <div id="results-content"></div>
+            </div>
+        </div>
+    </div>
+    
+    <button id="toggle-theme" class="theme-toggle-btn" aria-label="Changer le mode d'affichage">Mode sombre</button>
+    <button id="btn-open-simulator" class="simulator-btn guarded hidden">Simulateur</button>
+    
+    <!-- Conteneur pour les notifications de combat -->
+    <div id="combat-notifications"></div>
+    
+    <script src="spriteAnimator.js"></script>
+    <script src="config.js"></script>
+    <script src="apiService.js"></script>
+    <script src="uiManager.js"></script>
+    <script src="authManager.js"></script>
+    <script src="mapManager.js"></script>
+    <script src="characterManager.js"></script>
+    <script src="simulatorManager.js"></script>
+    <script src="simulateur.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
